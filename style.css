@@ -1,0 +1,25 @@
+/**
+ * style.css — global Slidev styles (warm paper / watercolour aesthetic, PRD §7)
+ *
+ * Applied to every slide automatically by Slidev when this file exists at the
+ * project root.
+ */
+
+/* ── Slide canvas ──────────────────────────────────────────────────────────── */
+:root {
+  --slidev-theme-primary: #4A7FA5;
+  --slidev-theme-background: #F5F0E8;
+}
+
+.slidev-slide {
+  background-color: #F5F0E8;
+  font-family: 'Noto Sans', sans-serif;
+}
+
+/* ── Content area: no extra padding so charts fill the slide ─────────────── */
+.slidev-layout.default {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

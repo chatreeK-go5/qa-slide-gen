@@ -1,15 +1,17 @@
 # qa-slide-gen — Jira Metrics Visualization Automation
 
 Automatically generates Jira operational dashboards as static PNG images from
-pre-aggregated JSON data, using **[Slidev](https://sli.dev/)** as the
-presentation/rendering engine.
+pre-aggregated JSON data using **[Slidev](https://sli.dev/)** as the
+slide-rendering engine.
+
+---
 
 ## Architecture
 
 ```
 Jira REST API
       ↓
-     n8n  (only system permitted to call Jira)
+     n8n  ← only system permitted to call Jira (PRD §2)
       ↓
 Pre-aggregated JSON  (no auth required)
       ↓
@@ -17,13 +19,13 @@ data/YYYY-MM-DD/*.json  (committed by n8n)
       ↓
 GitHub Actions  (.github/workflows/render.yml)
       ↓
-Slidev (sli.dev)  — renders Vue + SVG slides via Playwright
+Slidev (sli.dev) — renders Vue + SVG slides via Playwright
       ↓
 artifacts/YYYY-MM-DD/*.png  (committed by CI)
 ```
 
-> **Security note:** GitHub Actions does **not** call the Jira REST API.
-> Jira credentials live exclusively in n8n.
+> **Security note:** GitHub Actions does **not** call the Jira REST API.  
+> Jira credentials live exclusively in n8n. No Jira secrets in this repo.
 
 ---
 
@@ -32,12 +34,12 @@ artifacts/YYYY-MM-DD/*.png  (committed by CI)
 | Layer | Technology | Role |
 |-------|-----------|------|
 | Slide engine | [Slidev](https://sli.dev/) v0.49 | Markdown → Vue slides |
-| Chart components | Pure SVG (`components/`) | HBarChart, StackedHBar, DonutPair |
+| Chart components | Pure SVG (`components/`) | `HBarChart`, `StackedHBar`, `DonutPair` |
 | Export | `slidev export --format png` via Playwright | Static PNG output |
 | Data prep | `scripts/prepare_data.mjs` | Copies latest JSON to `data/current/` |
 | Rename | `scripts/render_slides.mjs` | Maps `1.png` → `production_issues.png` etc. |
 
-
+---
 
 ## Repository structure
 
@@ -57,27 +59,19 @@ artifacts/YYYY-MM-DD/*.png  (committed by CI)
 │       ├── over_14_days.png
 │       └── summary_by_priority.png
 │
+├── components/                  # Slidev Vue chart components (SVG)
+│   ├── HBarChart.vue            # Horizontal bar chart (Production Issues, Beauty in Sprint)
+│   ├── StackedHBar.vue          # Stacked horizontal bar (Over 14 Days)
+│   └── DonutPair.vue            # Side-by-side donut charts (Summary by Priority)
+│
 ├── scripts/
-│   ├── prepare_data.mjs     # Copies latest JSON → data/current/ (Slidev data source)
-│   ├── render_slides.mjs    # Runs Slidev export + renames PNGs to PRD names
-│   └── render_charts.py     # Legacy Python/matplotlib renderer (reference)
+│   ├── prepare_data.mjs         # Copies latest data/YYYY-MM-DD/ → data/current/
+│   └── render_slides.mjs        # Runs Slidev export + renames PNGs to PRD names
 │
-├── components/              # Slidev Vue chart components (SVG-based)
-│   ├── HBarChart.vue        # Horizontal bar chart
-│   ├── StackedHBar.vue      # Stacked horizontal bar chart
-│   └── DonutPair.vue        # Two side-by-side donut charts
-│
-├── slides.md                # Slidev presentation (4 dashboard slides)
-│
-├── assets/
-│   ├── bg_texture.png
-│   └── decorative_elements.png
-│
-├── .github/workflows/
-│   └── render.yml           # CI pipeline (Node + Slidev)
-│
+├── slides.md                    # Slidev presentation (4 dashboard slides)
+├── style.css                    # Global Slidev warm-paper styles
 ├── package.json
-├── requirements.txt
+├── .github/workflows/render.yml
 └── README.md
 ```
 
@@ -85,12 +79,12 @@ artifacts/YYYY-MM-DD/*.png  (committed by CI)
 
 ## Dashboards
 
-| Chart | Description |
-|-------|-------------|
-| **Production Issues** | Horizontal bar chart grouped by status, total badge |
-| **Beauty in Sprint** | Sprint-specific horizontal bars, highlighted total |
-| **Over – 14 Days** | Stacked bars by priority (Highest / High / Medium) for PI & Beauty |
-| **Summary by Priority** | Two side-by-side donut/pie charts (Beauty vs PI) |
+| # | File | Chart type | Description |
+|---|------|-----------|-------------|
+| 1 | `production_issues.png` | Horizontal bar | Status-grouped, large "207" total badge |
+| 2 | `beauty_in_sprint.png` | Horizontal bar | Sprint-specific counts with sprint pill |
+| 3 | `over_14_days.png` | Stacked horizontal bar | PI vs Beauty, stacked by priority |
+| 4 | `summary_by_priority.png` | Dual donut chart | Beauty vs PI priority breakdown |
 
 ---
 
@@ -98,7 +92,7 @@ artifacts/YYYY-MM-DD/*.png  (committed by CI)
 
 The workflow (`.github/workflows/render.yml`) runs automatically on:
 
-- **Push** to `data/**` (n8n commits new JSON → CI renders PNGs)
+- **Push** to `data/**` (n8n commits new JSON → CI renders PNGs automatically)
 - **Manual** `workflow_dispatch`
 - **Daily** schedule at 06:00 UTC (backup run)
 
@@ -107,51 +101,111 @@ The workflow (`.github/workflows/render.yml`) runs automatically on:
 ## Running locally
 
 ```bash
-# Install Node dependencies (for Slidev)
 npm install
 npx playwright install chromium --with-deps
 
-# Render all 4 dashboard PNGs via Slidev
+# Render all 4 dashboard PNGs in one command
 npm run render
 
 # Or step by step:
-node scripts/prepare_data.mjs          # copy latest JSON → data/current/
-node scripts/render_slides.mjs         # export slides → artifacts/YYYY-MM-DD/
+node scripts/prepare_data.mjs   # copy latest data/YYYY-MM-DD/ → data/current/
+node scripts/render_slides.mjs  # export slides → artifacts/YYYY-MM-DD/
 
-# Live preview (development mode)
+# Live development preview
 npm run dev
 ```
 
 PNGs are written to `artifacts/YYYY-MM-DD/`.
 
-## Data contract
+---
 
-n8n writes four JSON files per day.  The schemas are:
+## Data contract (n8n → repo)
+
+n8n writes **four JSON files** per day to `data/YYYY-MM-DD/`.  
+The schemas are stable and versioned (PRD §4.2).
 
 ### `production_issues.json`
 ```json
-{ "title": "...", "total": 207, "date": "YYYY-MM-DD",
-  "statuses": [{"label": "Open", "count": 85}, ...] }
+{
+  "title": "Production Issues",
+  "date": "YYYY-MM-DD",
+  "total": 207,
+  "statuses": [
+    { "label": "Open",        "count": 85 },
+    { "label": "In Progress", "count": 42 }
+  ]
+}
 ```
 
 ### `beauty_in_sprint.json`
 ```json
-{ "title": "...", "sprint_name": "Sprint 9", "total": 42,
-  "items": [{"label": "Open", "count": 15}, ...] }
+{
+  "title": "Beauty in Sprint",
+  "sprint_name": "Sprint 9",
+  "total": 42,
+  "statuses": [
+    { "label": "Open",        "count": 15 },
+    { "label": "In Progress", "count": 12 }
+  ]
+}
 ```
 
 ### `over_14_days.json`
 ```json
-{ "title": "...",
-  "pi":     {"label": "PI",     "highest": 5, "high": 12, "medium": 8},
-  "beauty": {"label": "Beauty", "highest": 3, "high": 7,  "medium": 4} }
+{
+  "title": "Over – 14 Days",
+  "groups": [
+    {
+      "label": "PI",
+      "priorities": [
+        { "label": "Highest", "count": 5  },
+        { "label": "High",    "count": 12 },
+        { "label": "Medium",  "count": 8  }
+      ]
+    },
+    {
+      "label": "Beauty",
+      "priorities": [
+        { "label": "Highest", "count": 3 },
+        { "label": "High",    "count": 7 },
+        { "label": "Medium",  "count": 4 }
+      ]
+    }
+  ]
+}
 ```
 
 ### `summary_by_priority.json`
 ```json
-{ "title": "...",
-  "beauty": {"label": "Beauty", "total": 42,
-             "priorities": [{"label": "Highest", "count": 5}, ...]},
-  "pi":     {"label": "PI=9",   "total": 9,
-             "priorities": [{"label": "Highest", "count": 2}, ...]} }
+{
+  "title": "Summary by Priority",
+  "charts": [
+    {
+      "label": "Beauty",
+      "total": 42,
+      "priorities": [
+        { "label": "Highest", "count": 5  },
+        { "label": "High",    "count": 15 },
+        { "label": "Medium",  "count": 12 },
+        { "label": "Low",     "count": 7  },
+        { "label": "Lowest",  "count": 3  }
+      ]
+    },
+    {
+      "label": "PI=9",
+      "total": 9,
+      "priorities": [
+        { "label": "Highest", "count": 2 },
+        { "label": "High",    "count": 4 },
+        { "label": "Medium",  "count": 3 }
+      ]
+    }
+  ]
+}
 ```
+
+> **Schema rules (PRD §4.2):**
+> - No Jira auth tokens or issue keys in JSON
+> - All counts are pre-aggregated integers
+> - `statuses[]` / `priorities[]` arrays are ordered (highest-count first is recommended)
+> - `charts[]` order determines left→right in the donut pair

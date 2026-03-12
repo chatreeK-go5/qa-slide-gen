@@ -1,11 +1,17 @@
 <!-- HBarChart.vue
-     Reusable horizontal bar chart (SVG-based, no external dependencies).
-     Used by: Production Issues slide, Beauty in Sprint slide.
+     Horizontal bar chart (SVG). Shared by Production Issues and Beauty in Sprint.
+     Props:
+       title       – slide title (displayed UPPERCASE)
+       total       – large badge number (e.g. 207)
+       statuses    – [{ label: string, count: number }]
+       subtitle    – optional small text below title (e.g. "Date: 2026-03-12")
+       badgeLabel  – optional label above total (default "TOTAL")
+       sprintBadge – optional sprint name pill (e.g. "Sprint 9")
 -->
 <script setup lang="ts">
 import { computed } from 'vue'
 
-interface Item {
+interface StatusItem {
   label: string
   count: number
 }
@@ -13,100 +19,121 @@ interface Item {
 const props = defineProps<{
   title: string
   total?: number
-  items: Item[]
+  statuses: StatusItem[]
   subtitle?: string
   badgeLabel?: string
+  sprintBadge?: string
 }>()
 
-const BAR_COLORS = ['#4A7FA5', '#6E9FBF', '#92BECE', '#B4D4E2', '#D2E8F2']
-const BG = '#F5F0E8'
+// ── palette ──────────────────────────────────────────────────────────────────
+const BAR_PALETTE = [
+  '#4A7FA5', '#6E9FBF', '#5BA08A', '#8BC4A8',
+  '#8B6F9E', '#B4A0C8', '#C07070', '#E0A0A0',
+]
 
-const LEFT_PAD = 170
-const RIGHT_PAD = 80
-const TOP_PAD = 90
-const BOTTOM_PAD = 50
-const BAR_H = 38
-const BAR_GAP = 18
-const CHART_W = 820
+// ── layout constants ─────────────────────────────────────────────────────────
+const L = 180   // left pad (label area)
+const R = 90    // right pad
+const T = 108   // top pad
+const B = 52    // bottom pad
+const BH = 40   // bar height
+const BG = 14   // bar gap
+const CW = 830  // chart area width
+const W  = L + CW + R  // total SVG width
 
-const SVG_W = LEFT_PAD + CHART_W + RIGHT_PAD
+// ── computed ─────────────────────────────────────────────────────────────────
+const sorted = computed(() =>
+  [...props.statuses].sort((a, b) => b.count - a.count)
+)
+const maxVal  = computed(() => Math.max(...sorted.value.map(i => i.count), 1))
+const total   = computed(() => props.total ?? sorted.value.reduce((s, i) => s + i.count, 0))
+const svgH    = computed(() => T + sorted.value.length * (BH + BG) - BG + B)
 
-const sorted = computed(() => [...props.items].sort((a, b) => b.count - a.count))
-const max = computed(() => Math.max(...sorted.value.map(i => i.count), 1))
-const total = computed(() => props.total ?? sorted.value.reduce((s, i) => s + i.count, 0))
-const svgH = computed(() => TOP_PAD + sorted.value.length * (BAR_H + BAR_GAP) - BAR_GAP + BOTTOM_PAD)
+function bw(count: number) { return Math.max((count / maxVal.value) * CW, 3) }
+function by(i: number)     { return T + i * (BH + BG) }
 
-function bw(count: number) {
-  return Math.max((count / max.value) * CHART_W, 2)
-}
-function by(i: number) {
-  return TOP_PAD + i * (BAR_H + BAR_GAP)
-}
+// Five evenly-spaced grid tick values
+const gridTicks = computed(() => {
+  const step = Math.ceil(maxVal.value / 5)
+  return [1, 2, 3, 4, 5].map(n => n * step)
+})
 </script>
 
 <template>
   <svg
-    :width="SVG_W"
-    :height="svgH"
-    :viewBox="`0 0 ${SVG_W} ${svgH}`"
+    :width="W" :height="svgH"
+    :viewBox="`0 0 ${W} ${svgH}`"
     xmlns="http://www.w3.org/2000/svg"
-    style="max-width:100%; height:auto;"
+    style="max-width:100%;height:auto;display:block;margin:auto"
   >
-    <!-- Background -->
-    <rect width="100%" height="100%" :fill="BG" rx="10"/>
+    <!-- ── background ─────────────────────────────────────────────────────── -->
+    <defs>
+      <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%"   stop-color="#FAF6EE"/>
+        <stop offset="100%" stop-color="#EDE5D4"/>
+      </linearGradient>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#bgGrad)" rx="12"/>
 
-    <!-- Title -->
-    <text x="20" y="42" font-family="'Noto Sans', sans-serif" font-size="24"
-      font-weight="bold" fill="#2C3E50">{{ title.toUpperCase() }}</text>
+    <!-- ── title ─────────────────────────────────────────────────────────── -->
+    <text x="20" y="44"
+      font-family="'Noto Sans',sans-serif" font-size="26" font-weight="700"
+      fill="#1A2E3D" letter-spacing="1">{{ title.toUpperCase() }}</text>
 
-    <!-- Subtitle -->
-    <text v-if="subtitle" x="20" y="64" font-family="'Noto Sans', sans-serif"
-      font-size="13" fill="#666">{{ subtitle }}</text>
-
-    <!-- Total badge -->
-    <rect :x="SVG_W - 118" y="14" width="100" height="56" rx="10"
-      fill="white" opacity="0.85" stroke="#C8B89A" stroke-width="1.5"/>
-    <text :x="SVG_W - 68" y="33" font-family="'Noto Sans', sans-serif"
-      font-size="11" fill="#777" text-anchor="middle">{{ badgeLabel ?? 'TOTAL' }}</text>
-    <text :x="SVG_W - 68" y="60" font-family="'Noto Sans', sans-serif"
-      font-size="26" font-weight="bold" fill="#2C3E50" text-anchor="middle">{{ total }}</text>
-
-    <!-- Grid lines -->
-    <g v-for="t in [1,2,3,4,5]" :key="t">
-      <line
-        :x1="LEFT_PAD + (t / 5) * CHART_W"
-        :y1="TOP_PAD - 8"
-        :x2="LEFT_PAD + (t / 5) * CHART_W"
-        :y2="TOP_PAD + sorted.length * (BAR_H + BAR_GAP) - BAR_GAP + 8"
-        stroke="#C0B090" stroke-width="1" stroke-dasharray="5,5" opacity="0.4"
-      />
+    <!-- sprint pill -->
+    <g v-if="sprintBadge">
+      <rect :x="20" y="54" :width="sprintBadge.length * 8 + 24" height="24"
+        rx="12" fill="#4A7FA5" opacity="0.15"/>
+      <text x="32" y="71"
+        font-family="'Noto Sans',sans-serif" font-size="13" fill="#4A7FA5" font-weight="600"
+      >{{ sprintBadge }}</text>
     </g>
 
-    <!-- Bars -->
+    <!-- subtitle -->
+    <text v-if="subtitle && !sprintBadge" x="20" y="70"
+      font-family="'Noto Sans',sans-serif" font-size="13" fill="#7A6A58">
+      {{ subtitle }}
+    </text>
+
+    <!-- ── total badge ─────────────────────────────────────────────────────── -->
+    <rect :x="W - 130" y="12" width="112" height="76" rx="12"
+      fill="white" opacity="0.72" stroke="#C8B89A" stroke-width="1.5"/>
+    <text :x="W - 74" y="38"
+      font-family="'Noto Sans',sans-serif" font-size="12" fill="#9A8A78"
+      text-anchor="middle" letter-spacing="1">{{ (badgeLabel ?? 'TOTAL').toUpperCase() }}</text>
+    <text :x="W - 74" y="76"
+      font-family="'Noto Sans',sans-serif" font-size="38" font-weight="800"
+      fill="#1A2E3D" text-anchor="middle">{{ total }}</text>
+
+    <!-- ── grid lines ─────────────────────────────────────────────────────── -->
+    <g v-for="tick in gridTicks" :key="tick">
+      <line
+        :x1="L + (tick / maxVal) * CW" :y1="T - 10"
+        :x2="L + (tick / maxVal) * CW" :y2="T + sorted.length * (BH + BG) - BG + 6"
+        stroke="#C4B49A" stroke-width="1" stroke-dasharray="4,5" opacity="0.5"/>
+    </g>
+    <!-- baseline -->
+    <line :x1="L" :y1="T - 10" :x2="L" :y2="T + sorted.length * (BH + BG) - BG + 6"
+      stroke="#B0A090" stroke-width="1.5" opacity="0.6"/>
+
+    <!-- ── bars ───────────────────────────────────────────────────────────── -->
     <g v-for="(item, i) in sorted" :key="item.label">
-      <!-- Row background -->
-      <rect
-        :x="LEFT_PAD" :y="by(i)"
-        :width="CHART_W" :height="BAR_H"
-        fill="white" opacity="0.2" rx="3"
-      />
-      <!-- Label -->
-      <text
-        :x="LEFT_PAD - 12" :y="by(i) + BAR_H / 2 + 5"
-        font-family="'Noto Sans', sans-serif" font-size="13" fill="#333" text-anchor="end"
-      >{{ item.label }}</text>
-      <!-- Bar fill -->
-      <rect
-        :x="LEFT_PAD" :y="by(i)"
-        :width="bw(item.count)" :height="BAR_H"
-        :fill="BAR_COLORS[i % BAR_COLORS.length]" rx="4" opacity="0.88"
-      />
-      <!-- Count label -->
-      <text
-        :x="LEFT_PAD + bw(item.count) + 10" :y="by(i) + BAR_H / 2 + 5"
-        font-family="'Noto Sans', sans-serif" font-size="13" font-weight="bold"
-        fill="#333" text-anchor="start"
-      >{{ item.count }}</text>
+      <!-- ghost track -->
+      <rect :x="L" :y="by(i)" :width="CW" :height="BH"
+        fill="white" opacity="0.18" rx="4"/>
+      <!-- label -->
+      <text :x="L - 12" :y="by(i) + BH / 2 + 5"
+        font-family="'Noto Sans',sans-serif" font-size="14" fill="#3A3028"
+        text-anchor="end">{{ item.label }}</text>
+      <!-- bar -->
+      <rect :x="L" :y="by(i) + 2"
+        :width="bw(item.count)" :height="BH - 4"
+        :fill="BAR_PALETTE[i % BAR_PALETTE.length]" rx="5" opacity="0.9"/>
+      <!-- count -->
+      <text :x="L + bw(item.count) + 10" :y="by(i) + BH / 2 + 5"
+        font-family="'Noto Sans',sans-serif" font-size="14" font-weight="700"
+        fill="#2C3E50">{{ item.count }}</text>
     </g>
   </svg>
 </template>
+

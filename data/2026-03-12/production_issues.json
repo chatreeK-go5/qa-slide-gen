@@ -1,12 +1,12 @@
 {
-  "title": "PRODUCTION ISSUES",
-  "total": 207,
+  "title": "Production Issues",
   "date": "2026-03-12",
+  "total": 207,
   "statuses": [
-    {"label": "Open",        "count": 85},
-    {"label": "In Progress", "count": 42},
-    {"label": "Resolved",    "count": 50},
-    {"label": "Closed",      "count": 18},
-    {"label": "Reopened",    "count": 12}
+    { "label": "Open",        "count": 85 },
+    { "label": "In Progress", "count": 42 },
+    { "label": "Resolved",    "count": 50 },
+    { "label": "Closed",      "count": 18 },
+    { "label": "Reopened",    "count": 12 }
   ]
 }

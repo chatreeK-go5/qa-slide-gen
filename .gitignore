@@ -8,16 +8,6 @@ dist/
 # data/current/ is generated at render time; not committed
 data/current/
 
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-.venv/
-venv/
-env/
-*.egg-info/
-build/
-
 # OS / editor
 .DS_Store
 Thumbs.db

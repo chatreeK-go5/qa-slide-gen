@@ -1,11 +1,11 @@
 {
-  "title": "BEAUTY IN SPRINT",
+  "title": "Beauty in Sprint",
   "sprint_name": "Sprint 9",
   "total": 42,
-  "items": [
-    {"label": "Open",        "count": 15},
-    {"label": "In Progress", "count": 12},
-    {"label": "Done",        "count": 10},
-    {"label": "Testing",     "count": 5}
+  "statuses": [
+    { "label": "Open",        "count": 15 },
+    { "label": "In Progress", "count": 12 },
+    { "label": "Done",        "count": 10 },
+    { "label": "Testing",     "count": 5  }
   ]
 }

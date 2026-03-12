@@ -1,15 +1,21 @@
 {
-  "title": "OVER \u2013 14 DAYS",
-  "pi": {
-    "label": "PI",
-    "highest": 5,
-    "high": 12,
-    "medium": 8
-  },
-  "beauty": {
-    "label": "Beauty",
-    "highest": 3,
-    "high": 7,
-    "medium": 4
-  }
+  "title": "Over \u2013 14 Days",
+  "groups": [
+    {
+      "label": "PI",
+      "priorities": [
+        { "label": "Highest", "count": 5  },
+        { "label": "High",    "count": 12 },
+        { "label": "Medium",  "count": 8  }
+      ]
+    },
+    {
+      "label": "Beauty",
+      "priorities": [
+        { "label": "Highest", "count": 3 },
+        { "label": "High",    "count": 7 },
+        { "label": "Medium",  "count": 4 }
+      ]
+    }
+  ]
 }

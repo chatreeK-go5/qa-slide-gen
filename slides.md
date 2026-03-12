@@ -3,23 +3,21 @@
 # Architecture (PRD): n8n → JSON → GitHub Actions → Slidev export → PNG
 theme: default
 background: '#F5F0E8'
-class: 'text-center'
 fonts:
   sans: 'Noto Sans'
-  mono: 'Fira Code'
 canvasWidth: 1100
 ---
 
 <script setup>
 import meta from './data/current/meta.json'
-import productionData from './data/current/production_issues.json'
+import d from './data/current/production_issues.json'
 </script>
 
 <HBarChart
-  :title="productionData.title"
-  :total="productionData.total"
-  :items="productionData.statuses"
-  :subtitle="`Date: ${productionData.date ?? meta.date}`"
+  :title="d.title"
+  :total="d.total"
+  :statuses="d.statuses"
+  :subtitle="`Date: ${d.date ?? meta.date}`"
 />
 
 ---
@@ -27,14 +25,14 @@ background: '#F5F0E8'
 ---
 
 <script setup>
-import beautyData from './data/current/beauty_in_sprint.json'
+import d from './data/current/beauty_in_sprint.json'
 </script>
 
 <HBarChart
-  :title="`${beautyData.title} – ${beautyData.sprint_name}`"
-  :total="beautyData.total"
-  :items="beautyData.items"
-  badge-label="TOTAL"
+  :title="d.title"
+  :total="d.total"
+  :statuses="d.statuses"
+  :sprint-badge="d.sprint_name"
 />
 
 ---
@@ -42,43 +40,28 @@ background: '#F5F0E8'
 ---
 
 <script setup>
-import over14Data from './data/current/over_14_days.json'
+import d from './data/current/over_14_days.json'
 
-const groups = [
-  {
-    label: over14Data.pi.label,
-    segments: [
-      { label: 'Highest', count: over14Data.pi.highest,  color: '#C0392B' },
-      { label: 'High',    count: over14Data.pi.high,     color: '#E67E22' },
-      { label: 'Medium',  count: over14Data.pi.medium,   color: '#27AE60' },
-    ],
-  },
-  {
-    label: over14Data.beauty.label,
-    segments: [
-      { label: 'Highest', count: over14Data.beauty.highest, color: '#C0392B' },
-      { label: 'High',    count: over14Data.beauty.high,    color: '#E67E22' },
-      { label: 'Medium',  count: over14Data.beauty.medium,  color: '#27AE60' },
-    ],
-  },
-]
+const COLORS = { Highest: '#C0392B', High: '#E67E22', Medium: '#27AE60' }
+
+const groups = d.groups.map(g => ({
+  label: g.label,
+  segments: g.priorities.map(p => ({
+    label: p.label,
+    count: p.count,
+    color: COLORS[p.label] ?? '#888888',
+  })),
+}))
 </script>
 
-<StackedHBar
-  :title="over14Data.title"
-  :groups="groups"
-/>
+<StackedHBar :title="d.title" :groups="groups" />
 
 ---
 background: '#F5F0E8'
 ---
 
 <script setup>
-import summaryData from './data/current/summary_by_priority.json'
+import d from './data/current/summary_by_priority.json'
 </script>
 
-<DonutPair
-  :title="summaryData.title"
-  :left="summaryData.beauty"
-  :right="summaryData.pi"
-/>
+<DonutPair :title="d.title" :charts="d.charts" />

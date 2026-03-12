@@ -1,158 +1,125 @@
 <!-- StackedHBar.vue
-     Stacked horizontal bar chart (SVG-based, no external dependencies).
-     Used by: Over 14 Days slide.
+     Stacked horizontal bar chart (SVG). Used by: Over – 14 Days slide.
+     Props:
+       title  – slide title
+       groups – [{ label: string, segments: [{ label, count, color }] }]
 -->
 <script setup lang="ts">
 import { computed } from 'vue'
 
-interface Segment {
-  label: string
-  count: number
-  color: string
-}
-
-interface Group {
-  label: string
-  segments: Segment[]
-}
+interface Segment { label: string; count: number; color: string }
+interface Group    { label: string; segments: Segment[] }
 
 const props = defineProps<{
   title: string
   groups: Group[]
-  legendTitle?: string
 }>()
 
-const BG = '#F5F0E8'
-const LEFT_PAD = 140
-const RIGHT_PAD = 60
-const TOP_PAD = 90
-const BOTTOM_PAD = 90
-const BAR_H = 52
-const BAR_GAP = 30
-const CHART_W = 860
-
-const SVG_W = LEFT_PAD + CHART_W + RIGHT_PAD
+// ── layout ───────────────────────────────────────────────────────────────────
+const L  = 140   // left label pad
+const R  = 60    // right pad
+const T  = 96    // top pad
+const B  = 90    // bottom pad (legend space)
+const BH = 56    // bar height
+const BG = 32    // bar gap
+const CW = 880   // chart area width
+const W  = L + CW + R
 
 const grandMax = computed(() =>
   Math.max(...props.groups.map(g => g.segments.reduce((s, seg) => s + seg.count, 0)), 1)
 )
-
-const svgH = computed(() =>
-  TOP_PAD + props.groups.length * (BAR_H + BAR_GAP) - BAR_GAP + BOTTOM_PAD
-)
+const svgH = computed(() => T + props.groups.length * (BH + BG) - BG + B)
 
 function segX(group: Group, segIdx: number) {
-  const left = LEFT_PAD
-  const prev = group.segments.slice(0, segIdx).reduce((s, seg) => s + seg.count, 0)
-  return left + (prev / grandMax.value) * CHART_W
+  return L + (group.segments.slice(0, segIdx).reduce((s, seg) => s + seg.count, 0) / grandMax.value) * CW
 }
+function segW(count: number) { return Math.max((count / grandMax.value) * CW, 3) }
+function by(i: number)       { return T + i * (BH + BG) }
 
-function segW(count: number) {
-  return Math.max((count / grandMax.value) * CHART_W, 2)
-}
-
-function by(i: number) {
-  return TOP_PAD + i * (BAR_H + BAR_GAP)
-}
-
-// Collect unique legend entries from all groups
-const legendEntries = computed(() => {
+// Collect unique legend entries (preserving order)
+const legend = computed(() => {
   const seen = new Set<string>()
-  const entries: Array<{ label: string; color: string }> = []
-  for (const g of props.groups) {
-    for (const seg of g.segments) {
-      if (!seen.has(seg.label)) {
-        seen.add(seg.label)
-        entries.push({ label: seg.label, color: seg.color })
-      }
-    }
-  }
-  return entries
+  return props.groups.flatMap(g => g.segments)
+    .filter(s => { const ok = !seen.has(s.label); seen.add(s.label); return ok })
+    .map(s => ({ label: s.label, color: s.color }))
 })
 
-const legendY = computed(() =>
-  TOP_PAD + props.groups.length * (BAR_H + BAR_GAP) - BAR_GAP + 20
-)
+const legendY = computed(() => T + props.groups.length * (BH + BG) - BG + 24)
 </script>
 
 <template>
   <svg
-    :width="SVG_W"
-    :height="svgH"
-    :viewBox="`0 0 ${SVG_W} ${svgH}`"
+    :width="W" :height="svgH"
+    :viewBox="`0 0 ${W} ${svgH}`"
     xmlns="http://www.w3.org/2000/svg"
-    style="max-width:100%; height:auto;"
+    style="max-width:100%;height:auto;display:block;margin:auto"
   >
-    <!-- Background -->
-    <rect width="100%" height="100%" :fill="BG" rx="10"/>
+    <!-- ── background ─────────────────────────────────────────────────────── -->
+    <defs>
+      <linearGradient id="bgGrad2" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%"   stop-color="#FAF6EE"/>
+        <stop offset="100%" stop-color="#EDE5D4"/>
+      </linearGradient>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#bgGrad2)" rx="12"/>
 
-    <!-- Title -->
-    <text x="20" y="42" font-family="'Noto Sans', sans-serif" font-size="24"
-      font-weight="bold" fill="#2C3E50">{{ title.toUpperCase() }}</text>
+    <!-- ── title ─────────────────────────────────────────────────────────── -->
+    <text x="20" y="44"
+      font-family="'Noto Sans',sans-serif" font-size="26" font-weight="700"
+      fill="#1A2E3D" letter-spacing="1">{{ title.toUpperCase() }}</text>
 
-    <!-- Grid lines -->
+    <!-- ── grid lines ─────────────────────────────────────────────────────── -->
     <g v-for="t in [1,2,3,4,5]" :key="t">
       <line
-        :x1="LEFT_PAD + (t / 5) * CHART_W"
-        :y1="TOP_PAD - 8"
-        :x2="LEFT_PAD + (t / 5) * CHART_W"
-        :y2="TOP_PAD + groups.length * (BAR_H + BAR_GAP) - BAR_GAP + 8"
-        stroke="#C0B090" stroke-width="1" stroke-dasharray="5,5" opacity="0.4"
-      />
+        :x1="L + (t / 5) * CW" :y1="T - 10"
+        :x2="L + (t / 5) * CW" :y2="T + groups.length * (BH + BG) - BG + 6"
+        stroke="#C4B49A" stroke-width="1" stroke-dasharray="4,5" opacity="0.45"/>
     </g>
+    <line :x1="L" :y1="T - 10" :x2="L" :y2="T + groups.length * (BH + BG) - BG + 6"
+      stroke="#B0A090" stroke-width="1.5" opacity="0.6"/>
 
-    <!-- Bars -->
+    <!-- ── bars ───────────────────────────────────────────────────────────── -->
     <g v-for="(group, gi) in groups" :key="group.label">
-      <!-- Row background -->
-      <rect
-        :x="LEFT_PAD" :y="by(gi)"
-        :width="CHART_W" :height="BAR_H"
-        fill="white" opacity="0.2" rx="3"
-      />
-      <!-- Group label -->
-      <text
-        :x="LEFT_PAD - 12" :y="by(gi) + BAR_H / 2 + 6"
-        font-family="'Noto Sans', sans-serif" font-size="15" font-weight="bold"
-        fill="#2C3E50" text-anchor="end"
-      >{{ group.label }}</text>
+      <!-- ghost track -->
+      <rect :x="L" :y="by(gi)" :width="CW" :height="BH"
+        fill="white" opacity="0.18" rx="4"/>
 
-      <!-- Stacked segments -->
+      <!-- group label -->
+      <text :x="L - 14" :y="by(gi) + BH / 2 + 6"
+        font-family="'Noto Sans',sans-serif" font-size="16" font-weight="700"
+        fill="#2C3E50" text-anchor="end">{{ group.label }}</text>
+
+      <!-- segments -->
       <g v-for="(seg, si) in group.segments" :key="seg.label">
         <rect
-          :x="segX(group, si)" :y="by(gi)"
-          :width="segW(seg.count)" :height="BAR_H"
-          :fill="seg.color" rx="3" opacity="0.88"
-        />
-        <!-- Segment label (only if wide enough) -->
-        <text
-          v-if="segW(seg.count) > 28"
+          :x="segX(group, si)" :y="by(gi) + 3"
+          :width="segW(seg.count)" :height="BH - 6"
+          :fill="seg.color" rx="4" opacity="0.88"/>
+        <!-- count inside segment (if wide enough) -->
+        <text v-if="segW(seg.count) > 32"
           :x="segX(group, si) + segW(seg.count) / 2"
-          :y="by(gi) + BAR_H / 2 + 6"
-          font-family="'Noto Sans', sans-serif" font-size="13" font-weight="bold"
-          fill="white" text-anchor="middle"
-        >{{ seg.count }}</text>
+          :y="by(gi) + BH / 2 + 6"
+          font-family="'Noto Sans',sans-serif" font-size="15" font-weight="700"
+          fill="white" text-anchor="middle">{{ seg.count }}</text>
       </g>
 
-      <!-- Total label at end -->
+      <!-- total after last segment -->
       <text
-        :x="segX(group, group.segments.length - 1) + segW(group.segments[group.segments.length - 1]?.count ?? 0) + 10"
-        :y="by(gi) + BAR_H / 2 + 6"
-        font-family="'Noto Sans', sans-serif" font-size="13" font-weight="bold"
-        fill="#333" text-anchor="start"
+        :x="L + (group.segments.reduce((s, seg) => s + seg.count, 0) / grandMax) * CW + 12"
+        :y="by(gi) + BH / 2 + 6"
+        font-family="'Noto Sans',sans-serif" font-size="15" font-weight="700"
+        fill="#2C3E50" text-anchor="start"
       >{{ group.segments.reduce((s, seg) => s + seg.count, 0) }}</text>
     </g>
 
-    <!-- Legend -->
-    <g v-for="(entry, li) in legendEntries" :key="entry.label">
-      <rect
-        :x="LEFT_PAD + li * 180" :y="legendY"
-        width="18" height="18"
-        :fill="entry.color" rx="3" opacity="0.88"
-      />
-      <text
-        :x="LEFT_PAD + li * 180 + 26" :y="legendY + 14"
-        font-family="'Noto Sans', sans-serif" font-size="13" fill="#333"
-      >{{ entry.label }}</text>
+    <!-- ── legend ─────────────────────────────────────────────────────────── -->
+    <g v-for="(entry, li) in legend" :key="entry.label">
+      <rect :x="L + li * 200" :y="legendY" width="20" height="20"
+        :fill="entry.color" rx="4" opacity="0.88"/>
+      <text :x="L + li * 200 + 28" :y="legendY + 15"
+        font-family="'Noto Sans',sans-serif" font-size="14" fill="#3A3028">
+        {{ entry.label }}
+      </text>
     </g>
   </svg>
 </template>
