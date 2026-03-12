@@ -1,7 +1,8 @@
 # qa-slide-gen — Jira Metrics Visualization Automation
 
 Automatically generates Jira operational dashboards as static PNG images from
-pre-aggregated JSON data.
+pre-aggregated JSON data, using **[Slidev](https://sli.dev/)** as the
+presentation/rendering engine.
 
 ## Architecture
 
@@ -16,6 +17,8 @@ data/YYYY-MM-DD/*.json  (committed by n8n)
       ↓
 GitHub Actions  (.github/workflows/render.yml)
       ↓
+Slidev (sli.dev)  — renders Vue + SVG slides via Playwright
+      ↓
 artifacts/YYYY-MM-DD/*.png  (committed by CI)
 ```
 
@@ -23,6 +26,18 @@ artifacts/YYYY-MM-DD/*.png  (committed by CI)
 > Jira credentials live exclusively in n8n.
 
 ---
+
+## Rendering stack
+
+| Layer | Technology | Role |
+|-------|-----------|------|
+| Slide engine | [Slidev](https://sli.dev/) v0.49 | Markdown → Vue slides |
+| Chart components | Pure SVG (`components/`) | HBarChart, StackedHBar, DonutPair |
+| Export | `slidev export --format png` via Playwright | Static PNG output |
+| Data prep | `scripts/prepare_data.mjs` | Copies latest JSON to `data/current/` |
+| Rename | `scripts/render_slides.mjs` | Maps `1.png` → `production_issues.png` etc. |
+
+
 
 ## Repository structure
 
@@ -43,15 +58,25 @@ artifacts/YYYY-MM-DD/*.png  (committed by CI)
 │       └── summary_by_priority.png
 │
 ├── scripts/
-│   └── render_charts.py         # Chart renderer (reads JSON → writes PNG)
+│   ├── prepare_data.mjs     # Copies latest JSON → data/current/ (Slidev data source)
+│   ├── render_slides.mjs    # Runs Slidev export + renames PNGs to PRD names
+│   └── render_charts.py     # Legacy Python/matplotlib renderer (reference)
+│
+├── components/              # Slidev Vue chart components (SVG-based)
+│   ├── HBarChart.vue        # Horizontal bar chart
+│   ├── StackedHBar.vue      # Stacked horizontal bar chart
+│   └── DonutPair.vue        # Two side-by-side donut charts
+│
+├── slides.md                # Slidev presentation (4 dashboard slides)
 │
 ├── assets/
 │   ├── bg_texture.png
 │   └── decorative_elements.png
 │
 ├── .github/workflows/
-│   └── render.yml               # CI pipeline
+│   └── render.yml           # CI pipeline (Node + Slidev)
 │
+├── package.json
 ├── requirements.txt
 └── README.md
 ```
@@ -82,14 +107,22 @@ The workflow (`.github/workflows/render.yml`) runs automatically on:
 ## Running locally
 
 ```bash
-pip install -r requirements.txt
-python scripts/render_charts.py           # uses most-recent date folder
-python scripts/render_charts.py --date 2026-03-12
+# Install Node dependencies (for Slidev)
+npm install
+npx playwright install chromium --with-deps
+
+# Render all 4 dashboard PNGs via Slidev
+npm run render
+
+# Or step by step:
+node scripts/prepare_data.mjs          # copy latest JSON → data/current/
+node scripts/render_slides.mjs         # export slides → artifacts/YYYY-MM-DD/
+
+# Live preview (development mode)
+npm run dev
 ```
 
 PNGs are written to `artifacts/YYYY-MM-DD/`.
-
----
 
 ## Data contract
 

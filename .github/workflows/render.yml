@@ -23,17 +23,25 @@ jobs:
           # Fetch full history so git push works on protected branches
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      # ── Slidev (sli.dev) rendering pipeline ──────────────────────────────
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          python-version: "3.11"
-          cache: "pip"
+          node-version: "20"
+          cache: "npm"
 
-      - name: Install Python dependencies
-        run: pip install -r requirements.txt
+      - name: Install Node dependencies
+        run: npm ci
 
-      - name: Render charts
-        run: python scripts/render_charts.py
+      - name: Install Playwright Chromium (required by slidev export)
+        run: npx playwright install chromium --with-deps
+
+      - name: Prepare data for Slidev (copy latest JSON → data/current/)
+        run: node scripts/prepare_data.mjs
+
+      - name: Export Slidev slides as PNG
+        run: node scripts/render_slides.mjs
+      # ─────────────────────────────────────────────────────────────────────
 
       - name: Commit and push artifacts
         run: |
@@ -47,3 +55,4 @@ jobs:
             git commit -m "chore: render charts [skip ci]"
             git push
           fi
+
