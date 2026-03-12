@@ -1,0 +1,15 @@
+{
+  "title": "OVER \u2013 14 DAYS",
+  "pi": {
+    "label": "PI",
+    "highest": 5,
+    "high": 12,
+    "medium": 8
+  },
+  "beauty": {
+    "label": "Beauty",
+    "highest": 3,
+    "high": 7,
+    "medium": 4
+  }
+}

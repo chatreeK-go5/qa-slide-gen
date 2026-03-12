@@ -1,0 +1,23 @@
+{
+  "title": "SUMMARY BY PRIORITY",
+  "beauty": {
+    "label": "Beauty",
+    "total": 42,
+    "priorities": [
+      {"label": "Highest", "count": 5},
+      {"label": "High",    "count": 15},
+      {"label": "Medium",  "count": 12},
+      {"label": "Low",     "count": 7},
+      {"label": "Lowest",  "count": 3}
+    ]
+  },
+  "pi": {
+    "label": "PI=9",
+    "total": 9,
+    "priorities": [
+      {"label": "Highest", "count": 2},
+      {"label": "High",    "count": 4},
+      {"label": "Medium",  "count": 3}
+    ]
+  }
+}
