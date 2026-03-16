@@ -1,0 +1,53 @@
+name: Render Jira Metrics Charts
+
+on:
+  push:
+    paths:
+      - "data/**"
+  workflow_dispatch:
+  schedule:
+    # Daily backup run at 06:00 UTC
+    - cron: "0 6 * * *"
+
+jobs:
+  render:
+    name: Render PNG dashboards
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium (required by slidev export)
+        run: npx playwright install chromium --with-deps
+
+      - name: Prepare data (copy latest JSON → data/current/)
+        run: node scripts/prepare_data.mjs
+
+      - name: Export Slidev slides as PNG
+        run: node scripts/render_slides.mjs
+
+      - name: Commit and push artifacts
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add artifacts/
+          if git diff --staged --quiet; then
+            echo "No chart changes to commit."
+          else
+            git commit -m "chore: render charts [skip ci]"
+            git push
+          fi

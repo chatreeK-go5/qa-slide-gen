@@ -1,0 +1,17 @@
+/**
+ * style.css — global Slidev styles (warm paper aesthetic, PRD §7)
+ *
+ * KEY: Targets ALL layout types (cover, default, center) so charts fill the
+ * full 1100×618 canvas. The SVG viewBox="0 0 1100 618" relies on zero padding.
+ */
+
+:root {
+  --slidev-theme-primary: #4A7FA5;
+  --slidev-theme-background: #F5F0E8;
+}
+
+/* Remove padding from every layout so SVG fills the slide edge-to-edge */
+.slidev-layout {
+  padding: 0 !important;
+  overflow: hidden !important;
+}

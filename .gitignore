@@ -1,0 +1,17 @@
+# Node
+node_modules/
+.slidev-export-tmp/
+
+# Slidev build output (not the exported PNG artifacts)
+dist/
+
+# data/current/ is generated at render time; not committed
+data/current/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
