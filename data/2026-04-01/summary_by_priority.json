@@ -1,0 +1,41 @@
+{
+  "title": "Summary by Priority",
+  "charts": [
+    {
+      "label": "Beauty",
+      "total": 219,
+      "priorities": [
+        {
+          "label": "Highest",
+          "count": 3
+        },
+        {
+          "label": "High",
+          "count": 10
+        },
+        {
+          "label": "Medium",
+          "count": 206
+        }
+      ]
+    },
+    {
+      "label": "PI=181",
+      "total": 181,
+      "priorities": [
+        {
+          "label": "Highest",
+          "count": 31
+        },
+        {
+          "label": "High",
+          "count": 36
+        },
+        {
+          "label": "Medium",
+          "count": 114
+        }
+      ]
+    }
+  ]
+}
