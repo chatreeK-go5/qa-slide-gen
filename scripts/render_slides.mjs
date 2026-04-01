@@ -95,6 +95,9 @@ async function main() {
     process.exit(1)
   }
 
+  const expectedCount = Object.keys(SLIDE_MAP).length
+  let rendered = 0
+
   for (const file of exported) {
     // Slidev names files 1.png, 2.png, ...
     const match = file.match(/^(\d+)\.png$/)
@@ -108,6 +111,12 @@ async function main() {
     const dst = join(outputDir, `${chartName}.png`)
     await rename(join(actualDir, file), dst)
     console.log(`  ✓  ${file} → artifacts/${dateStr}/${chartName}.png`)
+    rendered++
+  }
+
+  if (rendered < expectedCount) {
+    console.error(`ERROR: Expected ${expectedCount} slides but only ${rendered} were exported. Aborting.`)
+    process.exit(1)
   }
 
   // Cleanup

@@ -13,10 +13,36 @@
  *   node scripts/prepare_data.mjs [--date YYYY-MM-DD]
  */
 
-import { readdir, copyFile, mkdir, writeFile } from 'fs/promises'
+import { readdir, copyFile, mkdir, writeFile, readFile } from 'fs/promises'
 import { existsSync } from 'fs'
 import { join, resolve } from 'path'
 import { fileURLToPath } from 'url'
+
+// Required top-level fields for each JSON file (type checks are basic: array vs non-array)
+const SCHEMA = {
+  production_issues:  { title: 'string', total: 'number', statuses: 'array' },
+  beauty_in_sprint:   { title: 'string', total: 'number', statuses: 'array' },
+  over_14_days:       { title: 'string', groups: 'array' },
+  summary_by_priority:{ title: 'string', charts: 'array' },
+}
+
+function validateJSON(name, data) {
+  const schema = SCHEMA[name]
+  if (!schema) return
+  const errors = []
+  for (const [field, type] of Object.entries(schema)) {
+    if (!(field in data)) {
+      errors.push(`missing field "${field}"`)
+    } else if (type === 'array' && !Array.isArray(data[field])) {
+      errors.push(`"${field}" must be an array`)
+    } else if (type !== 'array' && typeof data[field] !== type) {
+      errors.push(`"${field}" must be a ${type}`)
+    }
+  }
+  if (errors.length > 0) {
+    throw new Error(`${name}.json schema error: ${errors.join(', ')}`)
+  }
+}
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const repoRoot = resolve(__dirname, '..')
@@ -74,6 +100,8 @@ async function main() {
       missing.push(name)
       continue
     }
+    const data = JSON.parse(await readFile(src, 'utf8'))
+    validateJSON(name, data)
     await copyFile(src, dst)
     console.log(`  ✓  ${name}.json → data/current/`)
   }
