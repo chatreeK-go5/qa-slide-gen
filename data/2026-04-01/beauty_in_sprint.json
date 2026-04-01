@@ -1,0 +1,27 @@
+{
+  "title": "Beauty in Sprint",
+  "sprint_name": "Current Sprint",
+  "total": 219,
+  "statuses": [
+    {
+      "label": "New",
+      "count": 159
+    },
+    {
+      "label": "Investigate",
+      "count": 18
+    },
+    {
+      "label": "Ready to Verify",
+      "count": 19
+    },
+    {
+      "label": "In Progress",
+      "count": 9
+    },
+    {
+      "label": "Re-Open",
+      "count": 14
+    }
+  ]
+}
