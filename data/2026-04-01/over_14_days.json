@@ -1,0 +1,39 @@
+{
+  "title": "Over – 14 Days",
+  "groups": [
+    {
+      "label": "PI",
+      "priorities": [
+        {
+          "label": "Highest",
+          "count": 4
+        },
+        {
+          "label": "High",
+          "count": 2
+        },
+        {
+          "label": "Medium",
+          "count": 24
+        }
+      ]
+    },
+    {
+      "label": "Beauty",
+      "priorities": [
+        {
+          "label": "Highest",
+          "count": 3
+        },
+        {
+          "label": "High",
+          "count": 6
+        },
+        {
+          "label": "Medium",
+          "count": 144
+        }
+      ]
+    }
+  ]
+}
