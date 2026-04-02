@@ -1,0 +1,31 @@
+{
+  "title": "Production Issues",
+  "date": "2026-03-20",
+  "total": 200,
+  "statuses": [
+    {
+      "label": "New",
+      "count": 113
+    },
+    {
+      "label": "Investigate",
+      "count": 38
+    },
+    {
+      "label": "Ready to Verify",
+      "count": 21
+    },
+    {
+      "label": "Testing",
+      "count": 8
+    },
+    {
+      "label": "In Progress",
+      "count": 19
+    },
+    {
+      "label": "Re-Open",
+      "count": 1
+    }
+  ]
+}
