@@ -1,17 +1,12 @@
 name: Render Jira Metrics Charts
 
 on:
-  repository_dispatch:
-    types: [render-slides]
   workflow_dispatch:
     inputs:
       date:
         description: 'Data date (YYYY-MM-DD). Leave blank to use latest.'
         required: false
         default: ''
-  schedule:
-    # Daily backup run at 06:00 UTC
-    - cron: "0 6 * * *"
 
 jobs:
   render:
