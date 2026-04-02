@@ -63,5 +63,6 @@ jobs:
             echo "No chart changes to commit."
           else
             git commit -m "chore: render charts [skip ci]"
+            git pull --rebase
             git push
           fi
