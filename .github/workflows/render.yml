@@ -1,10 +1,14 @@
 name: Render Jira Metrics Charts
 
 on:
-  push:
-    paths:
-      - "data/**"
+  repository_dispatch:
+    types: [render-slides]
   workflow_dispatch:
+    inputs:
+      date:
+        description: 'Data date (YYYY-MM-DD). Leave blank to use latest.'
+        required: false
+        default: ''
   schedule:
     # Daily backup run at 06:00 UTC
     - cron: "0 6 * * *"
@@ -41,11 +45,14 @@ jobs:
       - name: Install Playwright Chromium (required by slidev export)
         run: npx playwright install chromium --with-deps
 
-      - name: Prepare data (copy latest JSON → data/current/)
-        run: node scripts/prepare_data.mjs
-
       - name: Export Slidev slides as PNG
-        run: node scripts/render_slides.mjs
+        run: |
+          DATE="${{ github.event.client_payload.date || github.event.inputs.date || '' }}"
+          if [ -n "$DATE" ]; then
+            npm run render -- --date "$DATE"
+          else
+            npm run render
+          fi
 
       - name: Commit and push artifacts
         run: |

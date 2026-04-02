@@ -23,10 +23,8 @@ import d from './data/current/production_issues.json'
 />
 
 ---
-
 layout: default
 background: '#F5F0E8'
-
 ---
 
 <script setup>
@@ -41,10 +39,8 @@ import d from './data/current/beauty_in_sprint.json'
 />
 
 ---
-
 layout: default
 background: '#F5F0E8'
-
 ---
 
 <script setup>
@@ -65,10 +61,8 @@ const groups = d.groups.map(g => ({
 <StackedHBar :title="d.title" :groups="groups" />
 
 ---
-
 layout: default
 background: '#F5F0E8'
-
 ---
 
 <script setup>

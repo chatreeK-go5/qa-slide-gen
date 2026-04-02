@@ -12,6 +12,10 @@
  *
  * Usage:
  *   node scripts/render_slides.mjs [--date YYYY-MM-DD]
+ *
+ * When --date is provided it is forwarded to prepare_data.mjs so the exact
+ * date folder is used instead of the latest one.  This is how the
+ * repository_dispatch trigger passes the date from n8n.
  */
 
 import { execSync } from 'child_process'
@@ -25,6 +29,8 @@ const repoRoot = resolve(__dirname, '..')
 const dataRoot = join(repoRoot, 'data')
 const artifactsRoot = join(repoRoot, 'artifacts')
 const TMP_EXPORT = join(repoRoot, '.slidev-export-tmp')
+
+const argDate = process.argv.find((a, i) => process.argv[i - 1] === '--date')
 
 // Slide index → PRD output filename (1-based)
 // Slide 1 = Production Issues, 2 = Beauty in Sprint, etc.
@@ -51,7 +57,8 @@ async function resolveDate() {
 async function main() {
   // Step 1: prepare data
   console.log('\n── Step 1: Prepare data ──')
-  execSync(`node ${join(__dirname, 'prepare_data.mjs')}`, { stdio: 'inherit' })
+  const dateArg = argDate ? ` --date ${argDate}` : ''
+  execSync(`node ${join(__dirname, 'prepare_data.mjs')}${dateArg}`, { stdio: 'inherit' })
 
   const dateStr = await resolveDate()
   const outputDir = join(artifactsRoot, dateStr)

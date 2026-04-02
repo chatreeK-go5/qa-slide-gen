@@ -15,7 +15,10 @@ Jira REST API
       ↓
 Pre-aggregated JSON  (no auth required)
       ↓
-data/YYYY-MM-DD/*.json  (committed by n8n)
+data/YYYY-MM-DD/*.json  (written by n8n via GitHub Contents API)
+      ↓
+n8n  →  POST /repos/{owner}/{repo}/dispatches
+        { event_type: "render-slides", client_payload: { date: "YYYY-MM-DD" } }
       ↓
 GitHub Actions  (.github/workflows/render.yml)
       ↓
@@ -24,7 +27,7 @@ Slidev (sli.dev) — renders Vue + SVG slides via Playwright
 artifacts/YYYY-MM-DD/*.png  (committed by CI)
 ```
 
-> **Security note:** GitHub Actions does **not** call the Jira REST API.  
+> **Security note:** GitHub Actions does **not** call the Jira REST API.
 > Jira credentials live exclusively in n8n. No Jira secrets in this repo.
 
 ---
@@ -90,11 +93,29 @@ artifacts/YYYY-MM-DD/*.png  (committed by CI)
 
 ## GitHub Actions trigger
 
-The workflow (`.github/workflows/render.yml`) runs automatically on:
+The workflow (`.github/workflows/render.yml`) runs on:
 
-- **Push** to `data/**` (n8n commits new JSON → CI renders PNGs automatically)
-- **Manual** `workflow_dispatch`
-- **Daily** schedule at 06:00 UTC (backup run)
+- **`repository_dispatch`** event type `render-slides` — n8n calls the GitHub
+  API after writing all JSON files, passing `{ date: "YYYY-MM-DD" }` in
+  `client_payload` so CI renders the exact date.
+- **Manual** `workflow_dispatch` — accepts an optional `date` input
+  (blank = use latest data folder).
+- **Daily** schedule at 06:00 UTC (backup run, uses latest data folder).
+
+### n8n dispatch call
+
+```http
+POST https://api.github.com/repos/{owner}/{repo}/dispatches
+Authorization: Bearer <GITHUB_PAT>
+Content-Type: application/json
+
+{
+  "event_type": "render-slides",
+  "client_payload": { "date": "YYYY-MM-DD" }
+}
+```
+
+The PAT needs `repo` scope (or `actions:write` on a fine-grained token).
 
 ---
 
