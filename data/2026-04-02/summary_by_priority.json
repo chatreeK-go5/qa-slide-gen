@@ -1,0 +1,20 @@
+{
+  "title": "Summary by Priority",
+  "charts": [
+    {
+      "label": "Beauty",
+      "total": 0,
+      "priorities": []
+    },
+    {
+      "label": "PI=2",
+      "total": 2,
+      "priorities": [
+        {
+          "label": "Medium",
+          "count": 2
+        }
+      ]
+    }
+  ]
+}
