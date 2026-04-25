@@ -21,6 +21,7 @@ const props = defineProps<{
   statuses: StatusItem[]
   subtitle?: string
   sprintBadge?: string
+  bg?: string
 }>()
 
 const PALETTE = ['#4A7FA5', '#5BA08A', '#6E9FBF', '#8BC4A8',
@@ -82,7 +83,7 @@ const gridTicks = computed(() => {
     style="display:block"
   >
     <!-- background -->
-    <rect x="0" y="0" width="1100" height="618" fill="#F5F0E8"/>
+    <rect x="0" y="0" width="1100" height="618" :fill="props.bg ?? '#F5F0E8'"/>
 
     <!-- title -->
     <text

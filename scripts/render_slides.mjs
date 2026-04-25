@@ -30,7 +30,7 @@ const dataRoot = join(repoRoot, 'data')
 const artifactsRoot = join(repoRoot, 'artifacts')
 const TMP_EXPORT = join(repoRoot, '.slidev-export-tmp')
 
-const argDate = process.argv.find((a, i) => process.argv[i - 1] === '--date')
+const argDate = process.argv.find((_a, i) => process.argv[i - 1] === '--date')
 
 // Slide index → PRD output filename (1-based)
 // Slide 1 = Production Issues, 2 = Beauty in Sprint, etc.

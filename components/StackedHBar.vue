@@ -16,6 +16,7 @@ interface Group    { label: string; segments: Segment[] }
 const props = defineProps<{
   title: string
   groups: Group[]
+  bg?: string
 }>()
 
 const VW = 1100
@@ -66,7 +67,7 @@ const legendX0   = computed(() => L + (CW - legend.value.length * legendStep.val
     overflow="hidden"
     style="display:block"
   >
-    <rect x="0" y="0" width="1100" height="618" fill="#F5F0E8"/>
+    <rect x="0" y="0" width="1100" height="618" :fill="props.bg ?? '#F5F0E8'"/>
 
     <!-- title -->
     <text x="28" y="56"

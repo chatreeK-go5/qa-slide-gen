@@ -1,11 +1,12 @@
 <!-- DonutPair.vue
-     Two donut charts side by side — fills the full 1100×618 Slidev canvas.
+     N donut charts side by side — fills the full 1100×618 Slidev canvas.
      All text uses style="font-size:Npx" to bypass UnoCSS attributify.
      Used by: Summary by Priority (slide 4).
 
      Props:
        title  – chart title
-       charts – [{ label, total, priorities: [{ label, count }] }, ...]  (2 entries)
+       charts – [{ label, total, priorities: [{ label, count }] }, ...]  (2+ entries)
+       bg     – background fill (default '#F5F0E8'; pass 'none' for transparent export)
 -->
 <script setup lang="ts">
 import { computed } from 'vue'
@@ -16,7 +17,10 @@ interface ChartSection  { label: string; total: number; priorities: PrioritySlic
 const props = defineProps<{
   title: string
   charts: ChartSection[]
+  bg?: string
 }>()
+
+const bgFill = computed(() => props.bg ?? '#F5F0E8')
 
 const PRIORITY_COLORS: Record<string, string> = {
   Highest: '#C0392B',
@@ -29,14 +33,19 @@ const PRIORITY_COLORS: Record<string, string> = {
 const VW    = 1100
 const VH    = 618
 const CY    = 318   // donut centre Y
-const ROUT  = 178   // outer radius
-const RIN   = 96    // inner (hole) radius
 const LEG_Y = 552   // legend strip Y
+
+const n = computed(() => props.charts.length)
+
+// Scale donuts down when 3+ charts to avoid overlap
+const rOut = computed(() => n.value <= 2 ? 178 : 115)
+const rIn  = computed(() => n.value <= 2 ? 96  : 62)
+const totalFontSize = computed(() => n.value <= 2 ? 52 : 36)
+const subLabelSize  = computed(() => n.value <= 2 ? 19 : 16)
 
 // Chart centres: evenly spaced across the slide width
 const cx = computed(() => {
-  const n = props.charts.length
-  return props.charts.map((_, i) => Math.round(VW * (i + 1) / (n + 1)))
+  return props.charts.map((_, i) => Math.round(VW * (i + 1) / (n.value + 1)))
 })
 
 // ── SVG arc path ──────────────────────────────────────────────────────────────
@@ -57,10 +66,10 @@ interface SliceRender {
   path: string; lx: number; ly: number; showLabel: boolean
 }
 
-function buildSlices(section: ChartSection, cxv: number): SliceRender[] {
+function buildSlices(section: ChartSection, cxv: number, rOutV: number, rInV: number): SliceRender[] {
   const tot = section.priorities.reduce((s, p) => s + p.count, 0) || 1
   let angle = 0
-  const lr = (ROUT + RIN) / 2
+  const lr = (rOutV + rInV) / 2
   return section.priorities.map(p => {
     const span = (p.count / tot) * Math.PI * 2
     const mid  = angle - Math.PI / 2 + span / 2
@@ -68,7 +77,7 @@ function buildSlices(section: ChartSection, cxv: number): SliceRender[] {
       label:     p.label,
       count:     p.count,
       color:     PRIORITY_COLORS[p.label] ?? '#AAAAAA',
-      path:      arcPath(cxv, ROUT, RIN, angle, span),
+      path:      arcPath(cxv, rOutV, rInV, angle, span),
       lx:        cxv + lr * Math.cos(mid),
       ly:        CY  + lr * Math.sin(mid),
       showLabel: p.count > 0 && span > 0.2,
@@ -79,7 +88,7 @@ function buildSlices(section: ChartSection, cxv: number): SliceRender[] {
 }
 
 const allSlices = computed(() =>
-  props.charts.map((section, i) => buildSlices(section, cx.value[i] ?? VW / 2))
+  props.charts.map((section, i) => buildSlices(section, cx.value[i] ?? VW / 2, rOut.value, rIn.value))
 )
 
 const legend = computed(() => {
@@ -101,7 +110,7 @@ const legendX0   = computed(() => (VW - legend.value.length * LEG_STEP) / 2)
     overflow="hidden"
     style="display:block"
   >
-    <rect x="0" y="0" width="1100" height="618" fill="#F5F0E8"/>
+    <rect x="0" y="0" width="1100" height="618" :fill="bgFill"/>
 
     <!-- main title -->
     <text :x="VW / 2" y="52" text-anchor="middle"
@@ -113,7 +122,7 @@ const legendX0   = computed(() => (VW - legend.value.length * LEG_STEP) / 2)
     <g v-for="(section, ci) in charts" :key="section.label">
       <!-- chart sub-label -->
       <text :x="cx[ci]" y="100" text-anchor="middle"
-        style="font-family:'Noto Sans',Arial,sans-serif;font-size:19px;font-weight:700;fill:#2C3E50">
+        :style="`font-family:'Noto Sans',Arial,sans-serif;font-size:${subLabelSize}px;font-weight:700;fill:#2C3E50`">
         {{ section.label }}
       </text>
 
@@ -121,7 +130,7 @@ const legendX0   = computed(() => (VW - legend.value.length * LEG_STEP) / 2)
       <path
         v-for="sl in allSlices[ci]" :key="sl.label"
         :d="sl.path" :fill="sl.color" opacity="0.92"
-        stroke="#F5F0E8" stroke-width="2.5"/>
+        :stroke="bgFill" stroke-width="2.5"/>
 
       <!-- count labels on each slice -->
       <text
@@ -134,7 +143,7 @@ const legendX0   = computed(() => (VW - legend.value.length * LEG_STEP) / 2)
 
       <!-- centre: big total number -->
       <text :x="cx[ci]" :y="CY + 16" text-anchor="middle"
-        style="font-family:'Noto Sans',Arial,sans-serif;font-size:52px;font-weight:800;fill:#1A2E3D">
+        :style="`font-family:'Noto Sans',Arial,sans-serif;font-size:${totalFontSize}px;font-weight:800;fill:#1A2E3D`">
         {{ section.total }}
       </text>
       <!-- centre: "TOTAL" label -->

@@ -13,7 +13,7 @@ jobs:
     name: Render PNG dashboards
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -32,15 +32,14 @@ jobs:
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
-        id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ hashFiles('package-lock.json') }}
 
-      - name: Install Playwright Chromium (required by slidev export)
+      - name: Install Playwright Chromium
         run: npx playwright install chromium --with-deps
 
-      - name: Export Slidev slides as PNG
+      - name: Render charts
         run: |
           DATE="${{ github.event.client_payload.date || github.event.inputs.date || '' }}"
           if [ -n "$DATE" ]; then
@@ -49,15 +48,9 @@ jobs:
             npm run render
           fi
 
-      - name: Commit and push artifacts
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add artifacts/
-          if git diff --staged --quiet; then
-            echo "No chart changes to commit."
-          else
-            git commit -m "chore: render charts [skip ci]"
-            git pull --rebase
-            git push
-          fi
+      - name: Upload charts as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-charts-${{ github.run_id }}
+          path: artifacts/
+          retention-days: 30

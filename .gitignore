@@ -8,6 +8,9 @@ dist/
 # data/current/ is generated at render time; not committed
 data/current/
 
+# artifacts/ are uploaded as GitHub Actions artifacts, not committed
+artifacts/
+
 # OS / editor
 .DS_Store
 Thumbs.db
