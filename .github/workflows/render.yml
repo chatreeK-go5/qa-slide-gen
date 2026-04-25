@@ -7,6 +7,10 @@ on:
         description: 'Data date (YYYY-MM-DD). Leave blank to use latest.'
         required: false
         default: ''
+      resumeUrl:                          # required by n8n
+        description: 'n8n resume URL'
+        required: false
+        default: ''
 
 jobs:
   render:
@@ -54,3 +58,16 @@ jobs:
           name: qa-charts-${{ github.run_id }}
           path: artifacts/
           retention-days: 30
+
+      - name: Resume n8n workflow
+        if: always()
+        run: |
+          if [ -n "${{ github.event.inputs.resumeUrl }}" ]; then
+            curl -X POST "${{ github.event.inputs.resumeUrl }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "status": "completed",
+                "conclusion": "${{ job.status }}",
+                "runUrl": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              }'
+          fi
