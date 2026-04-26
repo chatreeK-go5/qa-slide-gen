@@ -1,0 +1,59 @@
+{
+  "title": "Summary by Priority",
+  "charts": [
+    {
+      "label": "Beauty",
+      "total": 220,
+      "priorities": [
+        {
+          "label": "Highest",
+          "count": 1
+        },
+        {
+          "label": "High",
+          "count": 5
+        },
+        {
+          "label": "Medium",
+          "count": 214
+        }
+      ]
+    },
+    {
+      "label": "PI WEB=168",
+      "total": 168,
+      "priorities": [
+        {
+          "label": "Highest",
+          "count": 22
+        },
+        {
+          "label": "High",
+          "count": 43
+        },
+        {
+          "label": "Medium",
+          "count": 103
+        }
+      ]
+    },
+    {
+      "label": "PI Mobile=20",
+      "total": 20,
+      "priorities": [
+        {
+          "label": "Highest",
+          "count": 2
+        },
+        {
+          "label": "High",
+          "count": 2
+        },
+        {
+          "label": "Medium",
+          "count": 16
+        }
+      ]
+    }
+  ]
+}
