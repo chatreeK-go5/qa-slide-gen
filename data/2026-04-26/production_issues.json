@@ -1,0 +1,27 @@
+{
+  "title": "Production Issues",
+  "date": "2026-04-17",
+  "total": 168,
+  "statuses": [
+    {
+      "label": "New",
+      "count": 100
+    },
+    {
+      "label": "In Progress",
+      "count": 16
+    },
+    {
+      "label": "Ready to Verify",
+      "count": 22
+    },
+    {
+      "label": "Investigate",
+      "count": 29
+    },
+    {
+      "label": "Testing",
+      "count": 1
+    }
+  ]
+}
