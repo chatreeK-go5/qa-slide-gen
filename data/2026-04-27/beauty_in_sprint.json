@@ -1,0 +1,27 @@
+{
+  "title": "Beauty in Sprint",
+  "sprint_name": "empeo 5.17",
+  "total": 25,
+  "statuses": [
+    {
+      "label": "New",
+      "count": 11
+    },
+    {
+      "label": "In Progress",
+      "count": 8
+    },
+    {
+      "label": "Re-Open",
+      "count": 3
+    },
+    {
+      "label": "Investigate",
+      "count": 2
+    },
+    {
+      "label": "Ready to Verify",
+      "count": 1
+    }
+  ]
+}
